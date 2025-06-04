@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paper Trading App</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
+</head>
+<body class="bg-gray-100 text-gray-900 font-sans leading-normal tracking-normal">
+    <div class="container mx-auto p-4">
+        <h1 class="text-4xl font-bold text-center mb-8 text-blue-700">Paper Trading Dashboard</h1>
+
+        <div class="bg-white shadow-md rounded-lg p-6 mb-8">
+            <h2 class="text-2xl font-semibold mb-4 text-gray-800 flex justify-between items-center">
+                Account Summary
+                <button id="refreshAccountSummary" class="bg-blue-500 hover:bg-blue-600 text-white text-sm py-1 px-3 rounded-md transition duration-300">Refresh</button>
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                <div class="p-4 bg-blue-50 rounded-md">
+                    <p class="text-sm font-medium text-gray-600">Initial Capital</p>
+                    <p id="initialCapital" class="text-xl font-bold text-blue-800">₹0.00</p>
+                </div>
+                <div class="p-4 bg-purple-50 rounded-md">
+                    <p class="text-sm font-medium text-gray-600">Overall P&L (Unrealized)</p>
+                    <p id="overallPnL" class="text-xl font-bold text-gray-800">₹0.00</p>
+                </div>
+                <div class="p-4 bg-green-50 rounded-md">
+                    <p class="text-sm font-medium text-gray-600">Current Equity</p>
+                    <p id="currentEquity" class="text-xl font-bold text-green-800">₹0.00</p>
+                </div>
+            </div>
+        </div>
+
+        <hr class="border-t border-gray-300 my-8">
+
+        <div class="bg-white shadow-md rounded-lg p-6 mb-8">
+            <h2 class="text-2xl font-semibold mb-4 text-gray-800">Place New Order</h2>
+            <form id="placeOrderForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div>
+                    <label for="orderSymbol" class="block text-sm font-medium text-gray-700">Symbol:</label>
+                    <input type="text" id="orderSymbol" name="symbol" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., PNB" required>
+                </div>
+                <div>
+                    <label for="orderQuantity" class="block text-sm font-medium text-gray-700">Quantity:</label>
+                    <input type="number" id="orderQuantity" name="quantity" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500" required min="1">
+                </div>
+                <div>
+                    <label for="orderSide" class="block text-sm font-medium text-gray-700">Type:</label>
+                    <select id="orderSide" name="type" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="buy">Buy</option>
+                        <option value="sell">Sell</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="orderType" class="block text-sm font-medium text-gray-700">Order Type:</label>
+                    <select id="orderType" name="orderType" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="market">Market</option>
+                        <option value="limit">Limit</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="entryPrice" class="block text-sm font-medium text-gray-700">Entry Price (for Limit):</label>
+                    <input type="number" step="0.01" id="entryPrice" name="entryPrice" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500" value="0.0">
+                </div>
+                <div>
+                    <label for="stoploss" class="block text-sm font-medium text-gray-700">Stop Loss:</label>
+                    <input type="number" step="0.01" id="stoploss" name="stoploss" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500" value="0.0">
+                </div>
+                <div>
+                    <label for="target" class="block text-sm font-medium text-gray-700">Target:</label>
+                    <input type="number" step="0.01" id="target" name="target" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500" value="0.0">
+                </div>
+                <div class="col-span-full flex justify-end">
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-md shadow-lg transition duration-300">Place Order</button>
+                </div>
+            </form>
+            <div id="orderMessage" class="mt-4 text-center text-sm font-medium"></div>
+        </div>
+
+        <hr class="border-t border-gray-300 my-8">
+
+        <div class="bg-white shadow-md rounded-lg p-6 mb-8">
+            <h2 class="text-2xl font-semibold mb-4 text-gray-800 flex justify-between items-center">
+                Portfolio Holdings
+                <div>
+                    <button id="refreshPortfolio" class="bg-green-500 hover:bg-green-600 text-white text-sm py-1 px-3 rounded-md transition duration-300">Refresh</button>
+                    <button id="exitAll" class="bg-red-500 hover:bg-green-600 text-red text-sm py-1 px-3 rounded-md transition duration-300">Exit All</button>
+                </div>
+            </h2>
+            <div id="portfolioDetails" class="overflow-x-auto">
+                <p>Loading portfolio...</p>
+            </div>
+        </div>
+
+        <hr class="border-t border-gray-300 my-8">
+
+        <div class="bg-white shadow-md rounded-lg p-6 mb-8">
+            <h2 class="text-2xl font-semibold mb-4 text-gray-800 flex justify-between items-center">
+                Pending Orders
+                <button id="refreshOrders" class="bg-green-500 hover:bg-green-600 text-white text-sm py-1 px-3 rounded-md transition duration-300">Refresh</button>
+            </h2>
+            <div id="orderDetails" class="overflow-x-auto">
+                <p>Loading orders...</p>
+            </div>
+        </div>
+
+        <hr class="border-t border-gray-300 my-8">
+
+        <div class="bg-white shadow-md rounded-lg p-6 mb-8">
+            <h2 class="text-2xl font-semibold mb-4 text-gray-800">Get Live Quote</h2>
+            <form id="getQuoteForm" class="flex flex-col md:flex-row gap-4 items-end">
+                <div class="flex-grow">
+                    <label for="quoteSymbol" class="block text-sm font-medium text-gray-700">Symbol:</label>
+                    <input type="text" id="quoteSymbol" name="symbol" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., RELIANCE" required>
+                </div>
+                <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded-md shadow-lg transition duration-300">Get Quote</button>
+            </form>
+            <div id="quoteResult" class="mt-4 text-center text-lg font-bold text-gray-800"></div>
+        </div>
+
+    </div>
+</body>
+</html>
